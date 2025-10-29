@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(./gradlew build:*)",
+      "Read(//usr/lib/**)",
+      "Bash(xargs:*)",
+      "Bash(find:*)",
+      "Bash(./gradlew clean:*)",
+      "Read(//mnt/c/Users/micha/Documents/dev/minecraft/proxy/plugins/luckperms/**)",
+      "WebSearch",
+      "Read(//mnt/c/Users/micha/Documents/dev/minecraft/server 1/plugins/LuckPerms/**)",
+      "WebFetch(domain:luckperms.net)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:mariadb.com)",
+      "WebFetch(domain:dba.stackexchange.com)",
+      "Bash(jar -tf:*)",
+      "Bash(unzip:*)",
+      "Read(//mnt/c/Users/micha/Documents/dev/minecraft/**)",
+      "WebFetch(domain:docs.papermc.io)",
+      "WebFetch(domain:jd.papermc.io)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

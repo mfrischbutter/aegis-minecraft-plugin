@@ -1,0 +1,161 @@
+# Aegis Plugin - Deutsche Nachrichten
+# Platzhalter-Format: {placeholder}
+
+# === Allgemeine Nachrichten ===
+general:
+  prefix: "<dark_red>[<red>Aegis</red>]</dark_red> "
+  only_players: "Nur Spieler können diesen Befehl ausführen"
+  player_not_found: "Spieler nicht gefunden: {player}"
+  player_not_online: "Spieler ist nicht online: {player}"
+
+# === Aegis Hauptbefehl (/aegis) ===
+aegis:
+  header: "Aegis Moderationssystem"
+  version: "Version: "
+  author: "Autor: "
+  available_commands: "Verfügbare Befehle:"
+  permissions: "Berechtigungen:"
+  permissions_all: "aegis.* - Alle Berechtigungen"
+  permissions_individual: "aegis.ban, aegis.warn, aegis.kick, usw."
+
+# === Ban Befehle ===
+ban:
+  usage: "Verwendung: /ban <spieler> [grund]"
+  already_banned: "{player} ist bereits gebannt"
+  success: "Erfolgreich {player} gebannt"
+  failed: "Spieler konnte nicht gebannt werden: {error}"
+  reason_label: "Grund: "
+  type_label: "Typ: "
+  type_permanent: "Permanent"
+  kick_message_permanent: "Du wurdest permanent gebannt: {reason}"
+
+tempban:
+  usage: "Verwendung: /tempban <spieler> <stunden> [grund]"
+  usage_example: "Beispiel: /tempban Player123 24 Griefing"
+  usage_format: "Stunden müssen eine Zahl sein (z.B. 1, 24, 48, 168)"
+  invalid_duration: "Ungültige Stundenzahl: {duration}"
+  valid_formats: "Gib die Anzahl der Stunden als Zahl ein (z.B. 1, 24, 48)"
+  too_short: "Dauer muss mindestens 1 Stunde betragen"
+  too_long: "Dauer darf 8760 Stunden (1 Jahr) nicht überschreiten"
+  already_banned: "{player} ist bereits gebannt"
+  success: "Erfolgreich {player} temporär gebannt"
+  failed: "Spieler konnte nicht gebannt werden: {error}"
+  duration_label: "Dauer: "
+  expires_label: "Läuft ab: "
+  kick_message: "Du wurdest temporär gebannt für {hours} Stunden\nGrund: {reason}\nLäuft ab: {expires}"
+
+unban:
+  usage: "Verwendung: /unban <spieler> <grund>"
+  not_banned: "{player} ist nicht gebannt"
+  success: "Erfolgreich {player} entbannt"
+  failed: "Spieler konnte nicht entbannt werden: {error}"
+
+baninfo:
+  usage: "Verwendung: /baninfo <spieler>"
+  not_banned: "{player} ist momentan nicht gebannt"
+  header: "========== Ban-Informationen =========="
+  footer: "===================================="
+  player_label: "Spieler: "
+  uuid_label: "UUID: "
+  reason_label: "Grund: "
+  type_label: "Typ: "
+  issued_by_label: "Gebannt von: "
+  issued_at_label: "Gebannt am: "
+  expires_at_label: "Läuft ab: "
+  never_expires: "Niemals (Permanent)"
+  time_remaining: "Verbleibende Zeit: "
+  ip_ban_yes: "IP-Ban: Ja ({ip})"
+  ip_ban_no: "IP-Ban: Nein"
+  server_label: "Server: "
+  ban_id_label: "Ban-ID: "
+  console: "Konsole"
+  failed: "Ban-Informationen konnten nicht abgerufen werden: {error}"
+
+banlist:
+  usage: "Verwendung: /banlist [seite]"
+  no_bans: "Es gibt keine aktiven Bans"
+  page_not_exist: "Seite {page} existiert nicht"
+  header: "========== Aktive Bans (Seite {page}) =========="
+  footer: "===================================="
+  next_page: "Benutze /banlist {page} für die nächste Seite"
+  previous_page: "Benutze /banlist {page} für die vorherige Seite"
+  page_positive: "Seitenzahl muss positiv sein"
+  invalid_page: "Ungültige Seitenzahl: {page}"
+  entry_format: "[{id}] {player} - {type} von {issuer}"
+  entry_reason: "    Grund: {reason}"
+  entry_expires: "    Läuft ab: {expires}"
+  entry_ip: "    IP: {ip}"
+  failed: "Ban-Liste konnte nicht abgerufen werden: {error}"
+
+# === Warn Befehle ===
+warn:
+  usage: "Verwendung: /warn <spieler> <grund>"
+  success: "Erfolgreich {player} verwarnt"
+  failed: "Spieler konnte nicht verwarnt werden: {error}"
+  total_warnings: "Aktive Verwarnungen insgesamt: {count}"
+  player_notification: "Du wurdest verwarnt: {reason}"
+  player_total: "Verwarnungen insgesamt: {count}"
+  player_consequence: "Weitere Verwarnungen können zu automatischen Strafen führen."
+
+warns:
+  usage: "Verwendung: /warns <spieler>"
+  no_warnings: "{player} hat keine aktiven Verwarnungen"
+  header: "========== Verwarnungen für {player} =========="
+  total_active: "Aktive Verwarnungen insgesamt: {count}"
+  footer: "===================================="
+  use_unwarn: "Benutze /unwarn <spieler> <id> um eine Verwarnung zu entfernen"
+  entry_format: "[{id}] Ausgestellt von {issuer}"
+  entry_reason: "    Grund: {reason}"
+  entry_date: "    Datum: {date}"
+  entry_expires: "    Läuft ab: {expires}"
+  entry_never_expires: "    Läuft ab: Niemals"
+  failed: "Verwarnungen konnten nicht abgerufen werden: {error}"
+
+unwarn:
+  usage: "Verwendung: /unwarn <spieler> <warn-id> <grund>"
+  usage_help: "Benutze /warns <spieler> um Verwarnungs-IDs zu sehen"
+  invalid_id: "Ungültige Verwarnungs-ID: {id}"
+  success: "Erfolgreich Verwarnung #{id} von {player} entfernt"
+  not_found: "Verwarnung #{id} nicht gefunden oder bereits entfernt"
+  failed: "Verwarnung konnte nicht entfernt werden: {error}"
+
+clearwarns:
+  usage: "Verwendung: /clearwarns <spieler> <grund>"
+  no_warnings: "{player} hat keine aktiven Verwarnungen zum Entfernen"
+  success: "Erfolgreich {count} Verwarnung(en) von {player} entfernt"
+  player_notification: "Deine Verwarnungen wurden von {clearer} entfernt"
+  failed: "Verwarnungen konnten nicht entfernt werden: {error}"
+
+# === Kick Befehl ===
+kick:
+  usage: "Verwendung: /kick <spieler> [grund]"
+  success: "Erfolgreich {player} gekickt"
+  failed: "Spieler konnte nicht gekickt werden: {error}"
+  message_header: "Du wurdest gekickt!"
+  message_reason: "Grund: "
+  message_kicked_by: "Gekickt von: "
+
+# === Disconnect-Nachrichten ===
+disconnect:
+  ban_header: "Du bist von diesem Server gebannt!"
+  ban_reason: "Grund: "
+  ban_expires: "Läuft ab: "
+  ban_id: "Ban-ID: #"
+  ban_permanent: "Niemals (Permanent)"
+  ip_banned: "Deine IP-Adresse wurde von diesem Server gebannt."
+
+# === Validierung ===
+validation:
+  reason_too_short: "Grund muss mindestens 3 Zeichen lang sein"
+  reason_too_long: "Grund darf nicht länger als 256 Zeichen sein"
+  reason_invalid: "Ungültiger Grund: {reason}"
+
+# === Common Labels ===
+labels:
+  reason: "Grund: "
+  duration: "Dauer: "
+  expires: "Läuft ab: "
+  player: "Spieler: "
+  issuer: "Ausgestellt von: "
+  console: "Konsole"
+  unknown: "Unbekannt"

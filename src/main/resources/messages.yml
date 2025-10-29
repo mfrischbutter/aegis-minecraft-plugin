@@ -96,7 +96,7 @@ warn:
   total_warnings: "Aktive Verwarnungen insgesamt: {count}"
   player_notification: "Du wurdest verwarnt: {reason}"
   player_total: "Verwarnungen insgesamt: {count}"
-  player_consequence: "Weitere Verwarnungen können zu automatischen Strafen führen."
+  player_consequence: "Weitere Verwarnungen können zu Strafen führen."
 
 warns:
   usage: "Verwendung: /warns <spieler> [seite]"

@@ -96,9 +96,7 @@ public class ConfigurationManager {
         CommentedConfigurationNode soundsNode = rootNode.node("sounds");
 
         moderationConfig = new ModerationConfig(
-                modNode.node("default-warn-duration-days").getInt(30),
                 modNode.node("ip-ban-enabled").getBoolean(false),
-                modNode.node("silent-mode").getBoolean(false),
                 modNode.node("default-ban-reason").getString("Banned by an administrator"),
                 modNode.node("default-kick-reason").getString("Kicked by an administrator"),
                 soundsNode.node("enabled").getBoolean(true),
@@ -127,9 +125,7 @@ public class ConfigurationManager {
                 discordNode.node("webhook-url").getString(""),
                 discordNode.node("notify-bans").getBoolean(true),
                 discordNode.node("notify-warns").getBoolean(true),
-                discordNode.node("notify-kicks").getBoolean(true),
-                discordNode.node("notify-mutes").getBoolean(true),
-                discordNode.node("notify-reports").getBoolean(true)
+                discordNode.node("notify-kicks").getBoolean(true)
         );
     }
 
@@ -155,10 +151,7 @@ public class ConfigurationManager {
         node.node("database", "max-lifetime").set(1800000);
 
         // Moderation section
-        node.node("moderation", "warn-escalation-enabled").set(true);
-        node.node("moderation", "default-warn-duration-days").set(30);
         node.node("moderation", "ip-ban-enabled").set(false);
-        node.node("moderation", "silent-mode").set(false);
         node.node("moderation", "default-ban-reason").set("Banned by an administrator");
         node.node("moderation", "default-kick-reason").set("Kicked by an administrator");
 
@@ -174,8 +167,6 @@ public class ConfigurationManager {
         node.node("discord", "notify-bans").set(true);
         node.node("discord", "notify-warns").set(true);
         node.node("discord", "notify-kicks").set(true);
-        node.node("discord", "notify-mutes").set(true);
-        node.node("discord", "notify-reports").set(true);
 
         // Sounds section
         node.node("sounds", "enabled").set(true);

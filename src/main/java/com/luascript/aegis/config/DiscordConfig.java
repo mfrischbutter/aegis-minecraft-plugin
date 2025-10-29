@@ -9,19 +9,14 @@ public class DiscordConfig {
     private final boolean notifyBans;
     private final boolean notifyWarns;
     private final boolean notifyKicks;
-    private final boolean notifyMutes;
-    private final boolean notifyReports;
 
     public DiscordConfig(boolean enabled, String webhookUrl, boolean notifyBans,
-                         boolean notifyWarns, boolean notifyKicks, boolean notifyMutes,
-                         boolean notifyReports) {
+                         boolean notifyWarns, boolean notifyKicks) {
         this.enabled = enabled;
         this.webhookUrl = webhookUrl;
         this.notifyBans = notifyBans;
         this.notifyWarns = notifyWarns;
         this.notifyKicks = notifyKicks;
-        this.notifyMutes = notifyMutes;
-        this.notifyReports = notifyReports;
     }
 
     public boolean isEnabled() {
@@ -42,13 +37,5 @@ public class DiscordConfig {
 
     public boolean isNotifyKicks() {
         return notifyKicks;
-    }
-
-    public boolean isNotifyMutes() {
-        return notifyMutes;
-    }
-
-    public boolean isNotifyReports() {
-        return notifyReports;
     }
 }

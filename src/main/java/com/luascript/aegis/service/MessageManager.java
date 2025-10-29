@@ -232,14 +232,4 @@ public class MessageManager {
         messageCache.clear();
         logger.debug("Message cache cleared");
     }
-
-    /**
-     * Reload messages from the file.
-     *
-     * @param dataDirectory Plugin data directory
-     */
-    public void reload(Path dataDirectory) {
-        clearCache();
-        loadMessages(dataDirectory);
-    }
 }

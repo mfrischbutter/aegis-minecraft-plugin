@@ -186,13 +186,6 @@ public class ConfigurationManager {
         loader.save(node);
     }
 
-    /**
-     * Reload configuration from disk.
-     */
-    public void reload() throws ConfigurationException {
-        load();
-    }
-
     public DatabaseConfig getDatabaseConfig() {
         return databaseConfig;
     }

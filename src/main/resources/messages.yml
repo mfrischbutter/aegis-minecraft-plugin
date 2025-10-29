@@ -165,9 +165,3 @@ labels:
   issuer: "Ausgestellt von: "
   console: "Konsole"
   unknown: "Unbekannt"
-
-# === Reload Command ===
-reload:
-  success: "Konfiguration erfolgreich neu geladen!"
-  failed: "Fehler beim Neuladen der Konfiguration: {error}"
-  usage: "Verwendung: /aegisreload"

@@ -211,13 +211,7 @@ public class Aegis {
                 .build();
         commandManager.register(kickMeta, injector.getInstance(KickCommand.class));
 
-        // Reload command
-        CommandMeta reloadMeta = commandManager.metaBuilder("aegisreload")
-                .aliases("areload")
-                .build();
-        commandManager.register(reloadMeta, injector.getInstance(ReloadCommand.class));
-
-        logger.info("Commands registered: aegis, ban, tempban, unban, baninfo, banlist, warn, warns, unwarn, clearwarns, kick, aegisreload");
+        logger.info("Commands registered: aegis, ban, tempban, unban, baninfo, banlist, warn, warns, unwarn, clearwarns, kick");
     }
 
     /**

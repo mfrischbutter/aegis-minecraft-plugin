@@ -94,7 +94,6 @@ public class HibernateService {
             configuration.addAnnotatedClass(com.luascript.aegis.database.entity.Ban.class);
             configuration.addAnnotatedClass(com.luascript.aegis.database.entity.Warn.class);
             configuration.addAnnotatedClass(com.luascript.aegis.database.entity.Kick.class);
-            configuration.addAnnotatedClass(com.luascript.aegis.database.entity.WarnThreshold.class);
 
             // Build SessionFactory
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()

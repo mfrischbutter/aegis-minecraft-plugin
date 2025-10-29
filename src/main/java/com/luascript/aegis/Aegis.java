@@ -8,8 +8,10 @@ import com.luascript.aegis.listener.PlayerConnectionListener;
 import com.luascript.aegis.module.AegisModule;
 import com.luascript.aegis.service.BanService;
 import com.luascript.aegis.service.MessageManager;
+import com.luascript.aegis.service.UserService;
 import com.luascript.aegis.service.WarnService;
 import com.luascript.aegis.util.ComponentUtil;
+import com.luascript.aegis.util.Constants;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.event.Subscribe;
@@ -18,6 +20,7 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
@@ -72,11 +75,17 @@ public class Aegis {
             hibernateService.initialize();
             logger.info("Database connection established");
 
+            // Initialize console user
+            initializeConsoleUser();
+
             // Register event listeners
             registerListeners();
 
             // Register commands
             registerCommands();
+
+            // Register plugin messaging channels
+            registerPluginChannels();
 
             // Start scheduled tasks
             startScheduledTasks();
@@ -113,6 +122,21 @@ public class Aegis {
         }
 
         logger.info("Aegis has been disabled");
+    }
+
+    /**
+     * Initialize the console user in the database.
+     */
+    private void initializeConsoleUser() {
+        UserService userService = injector.getInstance(UserService.class);
+        userService.getOrCreateUser(Constants.CONSOLE_UUID, Constants.CONSOLE_NAME)
+                .thenAccept(user -> {
+                    logger.info("Console user initialized (UUID: {})", Constants.CONSOLE_UUID);
+                })
+                .exceptionally(e -> {
+                    logger.error("Failed to initialize console user", e);
+                    return null;
+                });
     }
 
     /**
@@ -187,7 +211,22 @@ public class Aegis {
                 .build();
         commandManager.register(kickMeta, injector.getInstance(KickCommand.class));
 
-        logger.info("Commands registered: aegis, ban, tempban, unban, baninfo, banlist, warn, warns, unwarn, clearwarns, kick");
+        // Reload command
+        CommandMeta reloadMeta = commandManager.metaBuilder("aegisreload")
+                .aliases("areload")
+                .build();
+        commandManager.register(reloadMeta, injector.getInstance(ReloadCommand.class));
+
+        logger.info("Commands registered: aegis, ban, tempban, unban, baninfo, banlist, warn, warns, unwarn, clearwarns, kick, aegisreload");
+    }
+
+    /**
+     * Register plugin messaging channels for backend server communication.
+     */
+    private void registerPluginChannels() {
+        MinecraftChannelIdentifier channel = MinecraftChannelIdentifier.from(Constants.PLUGIN_CHANNEL);
+        proxyServer.getChannelRegistrar().register(channel);
+        logger.info("Plugin messaging channel registered: {}", Constants.PLUGIN_CHANNEL);
     }
 
     /**

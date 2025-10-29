@@ -40,6 +40,26 @@ public class HibernateWarnRepository extends AbstractHibernateRepository<Warn, L
     }
 
     @Override
+    public CompletableFuture<List<Warn>> findActiveWarnsByPlayerPaginated(UUID uuid, int page, int pageSize) {
+        return executeQuery(session -> {
+            return session.createQuery(
+                    "FROM Warn w " +
+                    "JOIN FETCH w.player p " +
+                    "JOIN FETCH w.issuer i " +
+                    "WHERE p.uuid = :uuid " +
+                    "AND w.active = true " +
+                    "AND (w.expiresAt IS NULL OR w.expiresAt > :now) " +
+                    "ORDER BY w.createdAt DESC",
+                    Warn.class
+            ).setParameter("uuid", uuid.toString())
+             .setParameter("now", Instant.now())
+             .setFirstResult(page * pageSize)
+             .setMaxResults(pageSize)
+             .list();
+        });
+    }
+
+    @Override
     public CompletableFuture<Long> countActiveWarns(UUID uuid) {
         return executeQuery(session -> {
             return session.createQuery(
@@ -103,6 +123,23 @@ public class HibernateWarnRepository extends AbstractHibernateRepository<Warn, L
             // Note: We can't set removedBy in bulk update easily with HQL
             // This would require a more complex query or fetching entities first
             return null;
+        });
+    }
+
+    @Override
+    public CompletableFuture<java.util.Optional<Warn>> findByIdWithAssociations(Long id) {
+        return executeQuery(session -> {
+            List<Warn> results = session.createQuery(
+                    "FROM Warn w " +
+                    "JOIN FETCH w.player " +
+                    "JOIN FETCH w.issuer " +
+                    "LEFT JOIN FETCH w.removedBy " +
+                    "WHERE w.id = :id",
+                    Warn.class
+            ).setParameter("id", id)
+             .list();
+
+            return results.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(results.get(0));
         });
     }
 }

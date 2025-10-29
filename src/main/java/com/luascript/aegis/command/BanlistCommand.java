@@ -10,6 +10,7 @@ import com.velocitypowered.api.command.SimpleCommand;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -59,6 +60,9 @@ public class BanlistCommand implements SimpleCommand {
         // Get paginated bans (page is 0-indexed in service)
         banService.getActiveBans(page - 1, BANS_PER_PAGE)
                 .thenAccept(bans -> {
+                    // Reverse the list to show oldest first within the page
+                    Collections.reverse(bans);
+
                     if (bans.isEmpty() && currentPage == 1) {
                         messageService.send(source, messageManager.getMessage("banlist.no_bans"));
                         return;
@@ -73,6 +77,7 @@ public class BanlistCommand implements SimpleCommand {
                     // Display header
                     messageService.send(source, messageManager.getMessage("banlist.header",
                             MessageManager.placeholder("page", String.valueOf(currentPage))));
+                    messageService.send(source, "");
 
                     // Display each ban
                     for (Ban ban : bans) {
@@ -93,19 +98,32 @@ public class BanlistCommand implements SimpleCommand {
                         messageService.send(source, messageManager.getMessage("banlist.entry_reason",
                                 MessageManager.placeholder("reason", ban.getReason())));
 
-                        if (ban.getExpiresAt() != null) {
+                        // Determine if we have more fields to show
+                        boolean hasExpiration = ban.getExpiresAt() != null;
+                        boolean hasIp = ban.getIpAddress() != null;
+
+                        if (hasExpiration && hasIp) {
+                            // Both expiration and IP - expiration uses middle branch
                             messageService.send(source, messageManager.getMessage("banlist.entry_expires",
                                     MessageManager.placeholder("expires", expiration)));
-                        }
-
-                        if (ban.getIpAddress() != null) {
+                            messageService.send(source, messageManager.getMessage("banlist.entry_ip",
+                                    MessageManager.placeholder("ip", ban.getIpAddress())));
+                        } else if (hasExpiration) {
+                            // Only expiration - use last branch
+                            messageService.send(source, messageManager.getMessage("banlist.entry_expires_last",
+                                    MessageManager.placeholder("expires", expiration)));
+                        } else if (hasIp) {
+                            // Only IP - use last branch
                             messageService.send(source, messageManager.getMessage("banlist.entry_ip",
                                     MessageManager.placeholder("ip", ban.getIpAddress())));
                         }
+
+                        messageService.send(source, "");
                     }
 
                     // Display footer with navigation info
                     messageService.send(source, messageManager.getMessage("banlist.footer"));
+                    messageService.send(source, "");
 
                     if (bans.size() == BANS_PER_PAGE) {
                         messageService.send(source, messageManager.getMessage("banlist.next_page",

@@ -6,6 +6,7 @@ import com.luascript.aegis.service.BanService;
 import com.luascript.aegis.service.MessageManager;
 import com.luascript.aegis.service.MessageService;
 import com.luascript.aegis.service.UserService;
+import com.luascript.aegis.util.Constants;
 import com.luascript.aegis.util.StringUtil;
 import com.luascript.aegis.util.TimeUtil;
 import com.luascript.aegis.util.ValidationUtil;
@@ -106,10 +107,6 @@ public class TempbanCommand implements SimpleCommand {
 
         // Get issuer UUID
         UUID issuerUuid = getIssuerUuid(source);
-        if (issuerUuid == null) {
-            messageService.sendError(source, messageManager.getMessage("general.only_players"));
-            return;
-        }
 
         // Find target player
         userService.findByUsername(targetName)
@@ -209,6 +206,7 @@ public class TempbanCommand implements SimpleCommand {
         if (source instanceof Player player) {
             return player.getUniqueId();
         }
-        return null;
+        // For console, use the special console UUID
+        return Constants.CONSOLE_UUID;
     }
 }

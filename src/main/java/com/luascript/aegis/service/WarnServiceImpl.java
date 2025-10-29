@@ -1,10 +1,8 @@
 package com.luascript.aegis.service;
 
-import com.luascript.aegis.config.ModerationConfig;
 import com.luascript.aegis.database.entity.*;
 import com.luascript.aegis.repository.UserRepository;
 import com.luascript.aegis.repository.WarnRepository;
-import com.luascript.aegis.repository.WarnThresholdRepository;
 import com.luascript.aegis.util.TimeUtil;
 import org.slf4j.Logger;
 
@@ -18,30 +16,22 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Implementation of WarnService with escalation logic.
+ * Implementation of WarnService.
  */
 @Singleton
 public class WarnServiceImpl implements WarnService {
 
     private final WarnRepository warnRepository;
     private final UserRepository userRepository;
-    private final WarnThresholdRepository warnThresholdRepository;
-    private final BanService banService;
-    private final KickService kickService;
-    private final ModerationConfig moderationConfig;
+    private final NotificationService notificationService;
     private final Logger logger;
 
     @Inject
     public WarnServiceImpl(WarnRepository warnRepository, UserRepository userRepository,
-                           WarnThresholdRepository warnThresholdRepository,
-                           BanService banService, KickService kickService,
-                           ModerationConfig moderationConfig, Logger logger) {
+                           NotificationService notificationService, Logger logger) {
         this.warnRepository = warnRepository;
         this.userRepository = userRepository;
-        this.warnThresholdRepository = warnThresholdRepository;
-        this.banService = banService;
-        this.kickService = kickService;
-        this.moderationConfig = moderationConfig;
+        this.notificationService = notificationService;
         this.logger = logger;
     }
 
@@ -76,80 +66,18 @@ public class WarnServiceImpl implements WarnService {
                     logger.info("Created warning for {} by {} - Reason: {}",
                             playerUuid, issuerUuid, reason);
 
-                    // Check for escalation if enabled
-                    if (moderationConfig.isWarnEscalationEnabled()) {
-                        return handleEscalation(warn);
-                    } else {
-                        return CompletableFuture.completedFuture(warn);
-                    }
+                    // Count active warnings (including this new one) and send Discord notification
+                    return warnRepository.countActiveWarns(playerUuid)
+                        .thenApply(count -> {
+                            notificationService.notifyWarn(warn, count.intValue());
+                            return warn;
+                        });
                 });
-    }
-
-    /**
-     * Handle automatic escalation based on warning count.
-     */
-    private CompletableFuture<Warn> handleEscalation(Warn warn) {
-        UUID playerUuid = warn.getPlayer().getUuid();
-
-        return warnRepository.countActiveWarns(playerUuid)
-                .thenCompose(warnCount -> {
-                    int count = warnCount.intValue();
-
-                    logger.debug("Player {} now has {} active warnings", playerUuid, count);
-
-                    // Check if there's a threshold for this warn count
-                    return warnThresholdRepository.findByWarnCount(count)
-                            .thenCompose(thresholdOpt -> {
-                                if (thresholdOpt.isEmpty()) {
-                                    return CompletableFuture.completedFuture(warn);
-                                }
-
-                                WarnThreshold threshold = thresholdOpt.get();
-                                return executeEscalationAction(warn, threshold, count);
-                            });
-                });
-    }
-
-    /**
-     * Execute the escalation action (kick, tempban, or permban).
-     */
-    private CompletableFuture<Warn> executeEscalationAction(Warn warn, WarnThreshold threshold, int warnCount) {
-        UUID playerUuid = warn.getPlayer().getUuid();
-        UUID issuerUuid = warn.getIssuer().getUuid();
-        String serverName = warn.getServerName();
-
-        String escalationMessage = threshold.getMessage() != null ?
-                threshold.getMessage() :
-                "Automatic action due to " + warnCount + " warnings";
-
-        logger.info("Escalating warnings for {} - Action: {} (warn count: {})",
-                playerUuid, threshold.getActionType(), warnCount);
-
-        CompletableFuture<Void> actionFuture = switch (threshold.getActionType()) {
-            case KICK -> kickService.createKick(playerUuid, escalationMessage, issuerUuid, serverName)
-                    .thenApply(k -> (Void) null);
-
-            case TEMPBAN -> {
-                Duration duration = threshold.getDuration() != null ?
-                        Duration.ofSeconds(threshold.getDuration()) :
-                        Duration.ofDays(1); // Default to 1 day
-
-                yield banService.createTemporaryBan(playerUuid, escalationMessage,
-                                issuerUuid, duration, serverName, null)
-                        .thenApply(b -> (Void) null);
-            }
-
-            case PERMBAN -> banService.createPermanentBan(playerUuid, escalationMessage,
-                            issuerUuid, serverName, null)
-                    .thenApply(b -> (Void) null);
-        };
-
-        return actionFuture.thenApply(v -> warn);
     }
 
     @Override
     public CompletableFuture<Boolean> removeWarn(Long warnId, UUID removedBy, String reason) {
-        return warnRepository.findById(warnId)
+        return warnRepository.findByIdWithAssociations(warnId)
                 .thenCompose(optionalWarn -> {
                     if (optionalWarn.isEmpty()) {
                         return CompletableFuture.completedFuture(false);
@@ -173,6 +101,18 @@ public class WarnServiceImpl implements WarnService {
                             .thenApply(savedWarn -> {
                                 logger.info("Removed warning #{} by {} - Reason: {}",
                                         warnId, removedBy, reason);
+
+                                // Send Discord notification
+                                User remover = savedWarn.getRemovedBy();
+                                String removerName = remover != null ? remover.getUsername() : "Console";
+                                notificationService.notifyUnwarn(
+                                    warnId,
+                                    savedWarn.getPlayer().getUsername(),
+                                    savedWarn.getPlayer().getUuid().toString(),
+                                    removerName,
+                                    reason
+                                );
+
                                 return true;
                             });
                 });
@@ -180,14 +120,45 @@ public class WarnServiceImpl implements WarnService {
 
     @Override
     public CompletableFuture<Void> clearWarns(UUID playerUuid, UUID removedBy, String reason) {
-        return warnRepository.clearWarns(playerUuid, removedBy, reason)
-                .thenAccept(v -> logger.info("Cleared all warnings for {} by {}",
-                        playerUuid, removedBy));
+        // First, count active warns and get player info for notification
+        CompletableFuture<Long> countFuture = warnRepository.countActiveWarns(playerUuid);
+        CompletableFuture<Optional<User>> playerFuture = userRepository.findByUuid(playerUuid);
+        CompletableFuture<Optional<User>> removerFuture = userRepository.findByUuid(removedBy);
+
+        return CompletableFuture.allOf(countFuture, playerFuture, removerFuture)
+                .thenCompose(v -> {
+                    long count = countFuture.join();
+                    User player = playerFuture.join().orElse(null);
+                    User remover = removerFuture.join().orElse(null);
+
+                    // Clear warnings
+                    return warnRepository.clearWarns(playerUuid, removedBy, reason)
+                            .thenAccept(v2 -> {
+                                logger.info("Cleared all warnings for {} by {}",
+                                        playerUuid, removedBy);
+
+                                // Send Discord notification
+                                if (count > 0 && player != null) {
+                                    String removerName = remover != null ? remover.getUsername() : "Console";
+                                    notificationService.notifyClearWarns(
+                                        player.getUsername(),
+                                        player.getUuid().toString(),
+                                        removerName,
+                                        (int) count
+                                    );
+                                }
+                            });
+                });
     }
 
     @Override
     public CompletableFuture<List<Warn>> getActiveWarns(UUID playerUuid) {
         return warnRepository.findActiveWarnsByPlayer(playerUuid);
+    }
+
+    @Override
+    public CompletableFuture<List<Warn>> getActiveWarnsPaginated(UUID playerUuid, int page, int pageSize) {
+        return warnRepository.findActiveWarnsByPlayerPaginated(playerUuid, page, pageSize);
     }
 
     @Override

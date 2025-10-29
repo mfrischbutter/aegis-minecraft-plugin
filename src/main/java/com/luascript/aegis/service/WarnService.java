@@ -55,6 +55,16 @@ public interface WarnService {
     CompletableFuture<List<Warn>> getActiveWarns(UUID playerUuid);
 
     /**
+     * Get active warnings for a player with pagination.
+     *
+     * @param playerUuid Player UUID
+     * @param page Page number (0-indexed)
+     * @param pageSize Number of results per page
+     * @return CompletableFuture with list of active warnings
+     */
+    CompletableFuture<List<Warn>> getActiveWarnsPaginated(UUID playerUuid, int page, int pageSize);
+
+    /**
      * Count active warnings for a player.
      *
      * @param playerUuid Player UUID

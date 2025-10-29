@@ -5,6 +5,7 @@ import com.luascript.aegis.database.entity.BanType;
 import com.luascript.aegis.database.entity.User;
 import com.luascript.aegis.repository.BanRepository;
 import com.luascript.aegis.repository.UserRepository;
+import com.luascript.aegis.repository.WarnRepository;
 import com.luascript.aegis.util.TimeUtil;
 import org.slf4j.Logger;
 
@@ -25,15 +26,20 @@ public class BanServiceImpl implements BanService {
 
     private final BanRepository banRepository;
     private final UserRepository userRepository;
+    private final WarnRepository warnRepository;
     private final CacheService cacheService;
+    private final NotificationService notificationService;
     private final Logger logger;
 
     @Inject
     public BanServiceImpl(BanRepository banRepository, UserRepository userRepository,
-                          CacheService cacheService, Logger logger) {
+                          WarnRepository warnRepository, CacheService cacheService,
+                          NotificationService notificationService, Logger logger) {
         this.banRepository = banRepository;
         this.userRepository = userRepository;
+        this.warnRepository = warnRepository;
         this.cacheService = cacheService;
+        this.notificationService = notificationService;
         this.logger = logger;
     }
 
@@ -80,14 +86,23 @@ public class BanServiceImpl implements BanService {
                     // Save ban
                     return banRepository.save(ban);
                 })
-                .thenApply(ban -> {
+                .thenCompose(ban -> {
                     // Invalidate cache
                     cacheService.invalidateBanCache(playerUuid);
 
                     logger.info("Created {} ban for {} by {} - Reason: {}",
                             banType, playerUuid, issuerUuid, reason);
 
-                    return ban;
+                    // Fetch warning count and send Discord notification
+                    return warnRepository.countActiveWarns(playerUuid)
+                        .thenApply(count -> {
+                            if (banType == BanType.PERMANENT) {
+                                notificationService.notifyBan(ban, count.intValue());
+                            } else {
+                                notificationService.notifyTempBan(ban, count.intValue());
+                            }
+                            return ban;
+                        });
                 });
     }
 
@@ -120,6 +135,16 @@ public class BanServiceImpl implements BanService {
 
                                 logger.info("Removed ban for {} by {} - Reason: {}",
                                         playerUuid, removedBy, reason);
+
+                                // Send Discord notification
+                                User unbanner = savedBan.getUnbannedBy();
+                                String removerName = unbanner != null ? unbanner.getUsername() : "Console";
+                                notificationService.notifyUnban(
+                                    savedBan.getPlayer().getUsername(),
+                                    savedBan.getPlayer().getUuid().toString(),
+                                    removerName,
+                                    reason
+                                );
 
                                 return true;
                             });

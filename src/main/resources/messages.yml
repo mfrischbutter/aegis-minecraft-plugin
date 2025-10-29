@@ -73,18 +73,19 @@ baninfo:
 
 banlist:
   usage: "Verwendung: /banlist [seite]"
-  no_bans: "Es gibt keine aktiven Bans"
+  no_bans: "<yellow>Es gibt keine aktiven Bans</yellow>"
   page_not_exist: "Seite {page} existiert nicht"
-  header: "========== Aktive Bans (Seite {page}) =========="
-  footer: "===================================="
-  next_page: "Benutze /banlist {page} für die nächste Seite"
-  previous_page: "Benutze /banlist {page} für die vorherige Seite"
+  header: "<dark_red>========== Aktive Bans (Seite {page}) ==========</dark_red>"
+  footer: "<dark_red>====================================</dark_red>"
+  next_page: "<gray>Benutze /banlist {page} für die nächste Seite</gray>"
+  previous_page: "<gray>Benutze /banlist {page} für die vorherige Seite</gray>"
   page_positive: "Seitenzahl muss positiv sein"
   invalid_page: "Ungültige Seitenzahl: {page}"
-  entry_format: "[{id}] {player} - {type} von {issuer}"
-  entry_reason: "    Grund: {reason}"
-  entry_expires: "    Läuft ab: {expires}"
-  entry_ip: "    IP: {ip}"
+  entry_format: "<red>[#{id}]</red> <yellow>{player}</yellow> <gray>-</gray> <gold>{type}</gold> <gray>von</gray> <aqua>{issuer}</aqua>"
+  entry_reason: "  <gray>├─ Grund:</gray> <white>{reason}</white>"
+  entry_expires: "  <gray>├─ Läuft ab:</gray> <light_purple>{expires}</light_purple>"
+  entry_expires_last: "  <gray>└─ Läuft ab:</gray> <light_purple>{expires}</light_purple>"
+  entry_ip: "  <gray>└─ IP:</gray> <dark_aqua>{ip}</dark_aqua>"
   failed: "Ban-Liste konnte nicht abgerufen werden: {error}"
 
 # === Warn Befehle ===
@@ -98,17 +99,22 @@ warn:
   player_consequence: "Weitere Verwarnungen können zu automatischen Strafen führen."
 
 warns:
-  usage: "Verwendung: /warns <spieler>"
-  no_warnings: "{player} hat keine aktiven Verwarnungen"
-  header: "========== Verwarnungen für {player} =========="
-  total_active: "Aktive Verwarnungen insgesamt: {count}"
-  footer: "===================================="
-  use_unwarn: "Benutze /unwarn <spieler> <id> um eine Verwarnung zu entfernen"
-  entry_format: "[{id}] Ausgestellt von {issuer}"
-  entry_reason: "    Grund: {reason}"
-  entry_date: "    Datum: {date}"
-  entry_expires: "    Läuft ab: {expires}"
-  entry_never_expires: "    Läuft ab: Niemals"
+  usage: "Verwendung: /warns <spieler> [seite]"
+  no_warnings: "<yellow>{player}</yellow> hat keine aktiven Verwarnungen"
+  page_not_exist: "Seite {page} existiert nicht"
+  page_positive: "Seitenzahl muss positiv sein"
+  invalid_page: "Ungültige Seitenzahl: {page}"
+  header: "<gold>========== Verwarnungen für <yellow>{player}</yellow> (Seite {page}) ==========</gold>"
+  total_active: "<gray>Aktive Verwarnungen insgesamt: <yellow>{count}</yellow></gray>"
+  footer: "<gold>====================================</gold>"
+  next_page: "<gray>Benutze /warns {player} {page} für die nächste Seite</gray>"
+  previous_page: "<gray>Benutze /warns {player} {page} für die vorherige Seite</gray>"
+  use_unwarn: "<gray>Benutze /unwarn <spieler> <id> um eine Verwarnung zu entfernen</gray>"
+  entry_format: "<red>[#{id}]</red> <gray>Ausgestellt von</gray> <yellow>{issuer}</yellow>"
+  entry_reason: "  <gray>├─ Grund:</gray> <white>{reason}</white>"
+  entry_date: "  <gray>├─ Datum:</gray> <aqua>{date}</aqua>"
+  entry_expires: "  <gray>└─ Läuft ab:</gray> <light_purple>{expires}</light_purple>"
+  entry_never_expires: "  <gray>└─ Läuft ab:</gray> <green>Niemals</green>"
   failed: "Verwarnungen konnten nicht abgerufen werden: {error}"
 
 unwarn:
@@ -159,3 +165,9 @@ labels:
   issuer: "Ausgestellt von: "
   console: "Konsole"
   unknown: "Unbekannt"
+
+# === Reload Command ===
+reload:
+  success: "Konfiguration erfolgreich neu geladen!"
+  failed: "Fehler beim Neuladen der Konfiguration: {error}"
+  usage: "Verwendung: /aegisreload"

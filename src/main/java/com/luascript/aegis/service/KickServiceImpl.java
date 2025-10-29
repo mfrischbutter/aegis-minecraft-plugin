@@ -4,6 +4,7 @@ import com.luascript.aegis.database.entity.Kick;
 import com.luascript.aegis.database.entity.User;
 import com.luascript.aegis.repository.KickRepository;
 import com.luascript.aegis.repository.UserRepository;
+import com.luascript.aegis.repository.WarnRepository;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
@@ -20,12 +21,18 @@ public class KickServiceImpl implements KickService {
 
     private final KickRepository kickRepository;
     private final UserRepository userRepository;
+    private final WarnRepository warnRepository;
+    private final NotificationService notificationService;
     private final Logger logger;
 
     @Inject
-    public KickServiceImpl(KickRepository kickRepository, UserRepository userRepository, Logger logger) {
+    public KickServiceImpl(KickRepository kickRepository, UserRepository userRepository,
+                           WarnRepository warnRepository, NotificationService notificationService,
+                           Logger logger) {
         this.kickRepository = kickRepository;
         this.userRepository = userRepository;
+        this.warnRepository = warnRepository;
+        this.notificationService = notificationService;
         this.logger = logger;
     }
 
@@ -51,10 +58,16 @@ public class KickServiceImpl implements KickService {
                     // Save kick
                     return kickRepository.save(kick);
                 })
-                .thenApply(kick -> {
+                .thenCompose(kick -> {
                     logger.info("Created kick for {} by {} - Reason: {}",
                             playerUuid, issuerUuid, reason);
-                    return kick;
+
+                    // Fetch warning count and send Discord notification
+                    return warnRepository.countActiveWarns(playerUuid)
+                        .thenApply(count -> {
+                            notificationService.notifyKick(kick, count.intValue());
+                            return kick;
+                        });
                 });
     }
 

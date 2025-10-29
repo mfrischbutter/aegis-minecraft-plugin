@@ -93,14 +93,18 @@ public class ConfigurationManager {
 
     private void loadModerationConfig() {
         CommentedConfigurationNode modNode = rootNode.node("moderation");
+        CommentedConfigurationNode soundsNode = rootNode.node("sounds");
 
         moderationConfig = new ModerationConfig(
-                modNode.node("warn-escalation-enabled").getBoolean(true),
                 modNode.node("default-warn-duration-days").getInt(30),
                 modNode.node("ip-ban-enabled").getBoolean(false),
                 modNode.node("silent-mode").getBoolean(false),
                 modNode.node("default-ban-reason").getString("Banned by an administrator"),
-                modNode.node("default-kick-reason").getString("Kicked by an administrator")
+                modNode.node("default-kick-reason").getString("Kicked by an administrator"),
+                soundsNode.node("enabled").getBoolean(true),
+                soundsNode.node("warning", "sound").getString("ENTITY_VILLAGER_NO"),
+                soundsNode.node("warning", "volume").getFloat(1.0f),
+                soundsNode.node("warning", "pitch").getFloat(0.8f)
         );
     }
 
@@ -172,6 +176,12 @@ public class ConfigurationManager {
         node.node("discord", "notify-kicks").set(true);
         node.node("discord", "notify-mutes").set(true);
         node.node("discord", "notify-reports").set(true);
+
+        // Sounds section
+        node.node("sounds", "enabled").set(true);
+        node.node("sounds", "warning", "sound").set("ENTITY_VILLAGER_NO");
+        node.node("sounds", "warning", "volume").set(1.0f);
+        node.node("sounds", "warning", "pitch").set(0.8f);
 
         loader.save(node);
     }

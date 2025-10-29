@@ -4,6 +4,7 @@ import com.luascript.aegis.service.MessageManager;
 import com.luascript.aegis.service.MessageService;
 import com.luascript.aegis.service.UserService;
 import com.luascript.aegis.service.WarnService;
+import com.luascript.aegis.util.Constants;
 import com.luascript.aegis.util.StringUtil;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -68,10 +69,6 @@ public class UnwarnCommand implements SimpleCommand {
 
         // Get remover UUID
         UUID removerUuid = getIssuerUuid(source);
-        if (removerUuid == null) {
-            messageService.sendError(source, messageManager.getMessage("general.only_players"));
-            return;
-        }
 
         String removerName = source instanceof Player player ?
                 player.getUsername() : "Console";
@@ -125,6 +122,7 @@ public class UnwarnCommand implements SimpleCommand {
         if (source instanceof Player player) {
             return player.getUniqueId();
         }
-        return null;
+        // For console, use the special console UUID
+        return Constants.CONSOLE_UUID;
     }
 }

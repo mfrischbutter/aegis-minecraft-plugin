@@ -43,13 +43,14 @@ public class AegisModule extends AbstractModule {
         bind(BanRepository.class).to(HibernateBanRepository.class).in(Singleton.class);
         bind(WarnRepository.class).to(HibernateWarnRepository.class).in(Singleton.class);
         bind(KickRepository.class).to(HibernateKickRepository.class).in(Singleton.class);
-        bind(WarnThresholdRepository.class).to(HibernateWarnThresholdRepository.class).in(Singleton.class);
 
         // Bind services
         bind(UserService.class).to(UserServiceImpl.class).in(Singleton.class);
         bind(BanService.class).to(BanServiceImpl.class).in(Singleton.class);
         bind(WarnService.class).to(WarnServiceImpl.class).in(Singleton.class);
         bind(KickService.class).to(KickServiceImpl.class).in(Singleton.class);
+        bind(NotificationService.class).to(DiscordNotificationService.class).in(Singleton.class);
+        bind(SoundNotificationService.class).to(SoundNotificationServiceImpl.class).in(Singleton.class);
 
         // Utility services
         bind(CacheService.class).in(Singleton.class);

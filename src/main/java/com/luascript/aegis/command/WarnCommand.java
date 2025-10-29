@@ -1,10 +1,13 @@
 package com.luascript.aegis.command;
 
+import com.luascript.aegis.config.ModerationConfig;
 import com.luascript.aegis.database.entity.Warn;
 import com.luascript.aegis.service.MessageManager;
 import com.luascript.aegis.service.MessageService;
+import com.luascript.aegis.service.SoundNotificationService;
 import com.luascript.aegis.service.UserService;
 import com.luascript.aegis.service.WarnService;
+import com.luascript.aegis.util.Constants;
 import com.luascript.aegis.util.StringUtil;
 import com.luascript.aegis.util.ValidationUtil;
 import com.velocitypowered.api.command.CommandSource;
@@ -29,16 +32,21 @@ public class WarnCommand implements SimpleCommand {
     private final UserService userService;
     private final MessageService messageService;
     private final MessageManager messageManager;
+    private final SoundNotificationService soundNotificationService;
+    private final ModerationConfig moderationConfig;
     private final ProxyServer proxyServer;
     private final Logger logger;
 
     @Inject
     public WarnCommand(WarnService warnService, UserService userService, MessageService messageService,
-                       MessageManager messageManager, ProxyServer proxyServer, Logger logger) {
+                       MessageManager messageManager, SoundNotificationService soundNotificationService,
+                       ModerationConfig moderationConfig, ProxyServer proxyServer, Logger logger) {
         this.warnService = warnService;
         this.userService = userService;
         this.messageService = messageService;
         this.messageManager = messageManager;
+        this.soundNotificationService = soundNotificationService;
+        this.moderationConfig = moderationConfig;
         this.proxyServer = proxyServer;
         this.logger = logger;
     }
@@ -67,10 +75,6 @@ public class WarnCommand implements SimpleCommand {
 
         // Get issuer UUID
         UUID issuerUuid = getIssuerUuid(source);
-        if (issuerUuid == null) {
-            messageService.sendError(source, messageManager.getMessage("general.only_players"));
-            return;
-        }
 
         // Find target player
         userService.findByUsername(targetName)
@@ -111,6 +115,14 @@ public class WarnCommand implements SimpleCommand {
                                         messageService.send(player, messageManager.getMessage("warn.player_total",
                                                 MessageManager.placeholder("count", String.valueOf(count))));
                                         messageService.send(player, messageManager.getMessage("warn.player_consequence"));
+
+                                        // Play warning sound
+                                        soundNotificationService.playSound(
+                                                player,
+                                                moderationConfig.getWarningSoundName(),
+                                                moderationConfig.getWarningSoundVolume(),
+                                                moderationConfig.getWarningSoundPitch()
+                                        );
                                     });
 
                                     logger.info("{} warned {}: {} (total warnings: {})",
@@ -151,6 +163,7 @@ public class WarnCommand implements SimpleCommand {
         if (source instanceof Player player) {
             return player.getUniqueId();
         }
-        return null;
+        // For console, use the special console UUID
+        return Constants.CONSOLE_UUID;
     }
 }

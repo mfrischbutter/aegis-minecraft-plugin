@@ -15,15 +15,18 @@ import org.slf4j.Logger;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Command for viewing player warnings.
- * Usage: /warns <player>
+ * Usage: /warns <player> [page]
  */
 public class WarnsCommand implements SimpleCommand {
+
+    private static final int WARNS_PER_PAGE = 5;
 
     private final WarnService warnService;
     private final UserService userService;
@@ -56,6 +59,24 @@ public class WarnsCommand implements SimpleCommand {
 
         String targetName = args[0];
 
+        // Parse page number
+        int page = 1;
+        if (args.length > 1) {
+            try {
+                page = Integer.parseInt(args[1]);
+                if (page < 1) {
+                    messageService.sendError(source, messageManager.getMessage("warns.page_positive"));
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                messageService.sendError(source, messageManager.getMessage("warns.invalid_page",
+                        MessageManager.placeholder("page", args[1])));
+                return;
+            }
+        }
+
+        final int currentPage = page;
+
         // Find target player
         userService.findByUsername(targetName)
                 .thenCompose(userOpt -> {
@@ -67,8 +88,8 @@ public class WarnsCommand implements SimpleCommand {
 
                     UUID targetUuid = userOpt.get().getUuid();
 
-                    // Get active warnings
-                    return warnService.getActiveWarns(targetUuid)
+                    // Get paginated warnings and total count
+                    return warnService.getActiveWarnsPaginated(targetUuid, currentPage - 1, WARNS_PER_PAGE)
                             .thenCombine(
                                     warnService.countActiveWarns(targetUuid),
                                     (warns, count) -> new Object[]{warns, count, targetName}
@@ -84,15 +105,27 @@ public class WarnsCommand implements SimpleCommand {
                     Long count = (Long) result[1];
                     String playerName = (String) result[2];
 
-                    if (warns.isEmpty()) {
+                    // Reverse the list to show oldest first within the page
+                    Collections.reverse(warns);
+
+                    if (warns.isEmpty() && currentPage == 1) {
                         messageService.send(source, messageManager.getMessage("warns.no_warnings",
                                 MessageManager.placeholder("player", playerName)));
                         return;
                     }
 
+                    if (warns.isEmpty()) {
+                        messageService.sendError(source, messageManager.getMessage("warns.page_not_exist",
+                                MessageManager.placeholder("page", String.valueOf(currentPage))));
+                        return;
+                    }
+
                     // Display header
                     messageService.send(source, messageManager.getMessage("warns.header",
-                            MessageManager.placeholder("player", playerName)));
+                            MessageManager.builder()
+                                    .add("player", playerName)
+                                    .add("page", String.valueOf(currentPage))
+                                    .build()));
                     messageService.send(source, messageManager.getMessage("warns.total_active",
                             MessageManager.placeholder("count", String.valueOf(count))));
                     messageService.send(source, "");
@@ -123,7 +156,26 @@ public class WarnsCommand implements SimpleCommand {
                         messageService.send(source, "");
                     }
 
+                    // Display footer with navigation info
                     messageService.send(source, messageManager.getMessage("warns.footer"));
+                    messageService.send(source, "");
+
+                    if (warns.size() == WARNS_PER_PAGE) {
+                        messageService.send(source, messageManager.getMessage("warns.next_page",
+                                MessageManager.builder()
+                                        .add("player", playerName)
+                                        .add("page", String.valueOf(currentPage + 1))
+                                        .build()));
+                    }
+
+                    if (currentPage > 1) {
+                        messageService.send(source, messageManager.getMessage("warns.previous_page",
+                                MessageManager.builder()
+                                        .add("player", playerName)
+                                        .add("page", String.valueOf(currentPage - 1))
+                                        .build()));
+                    }
+
                     messageService.send(source, messageManager.getMessage("warns.use_unwarn"));
                 })
                 .exceptionally(e -> {
@@ -149,6 +201,11 @@ public class WarnsCommand implements SimpleCommand {
             List<String> playerNames = new ArrayList<>();
             proxyServer.getAllPlayers().forEach(player -> playerNames.add(player.getUsername()));
             return StringUtil.getMatches(args.length == 1 ? args[0] : "", playerNames);
+        }
+
+        // Suggest page numbers for second argument
+        if (args.length == 2) {
+            return List.of("1", "2", "3");
         }
 
         return List.of();

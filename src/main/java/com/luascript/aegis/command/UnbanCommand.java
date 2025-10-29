@@ -4,6 +4,7 @@ import com.luascript.aegis.service.BanService;
 import com.luascript.aegis.service.MessageManager;
 import com.luascript.aegis.service.MessageService;
 import com.luascript.aegis.service.UserService;
+import com.luascript.aegis.util.Constants;
 import com.luascript.aegis.util.StringUtil;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -123,7 +124,7 @@ public class UnbanCommand implements SimpleCommand {
         if (source instanceof Player player) {
             return player.getUniqueId();
         }
-        // For console, return null (BanService will handle it)
-        return null;
+        // For console, use the special console UUID
+        return Constants.CONSOLE_UUID;
     }
 }
